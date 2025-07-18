@@ -1,0 +1,578 @@
+# ================================
+# Auto Continue VS Code Extension
+# Comprehensive .gitignore
+# ================================
+
+# ============================
+# Build Outputs & Distribution
+# ============================
+out/
+dist/
+build/
+lib/
+*.vsix
+*.tgz
+
+# ===============
+# Node.js
+# ===============
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+.nyc_output
+
+# node-waf configuration
+.lock-wscript
+
+# Dependency directories
+jspm_packages/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional stylelint cache
+.stylelintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# ===============================
+# VS Code Extension Development
+# ===============================
+.vscode-test/
+.vscode-test-*
+*.vsix
+vscode-*.log
+
+# Extension host logs
+.vscode-test/user-data/logs/
+.vscode-test/extensions/
+
+# Test artifacts
+test-results/
+test-output/
+
+# =====================
+# Environment Variables
+# =====================
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.envrc
+
+# ================
+# API Keys & Secrets
+# ================
+# Never commit these!
+**/secrets/
+**/*.secret
+**/*.key
+**/*.pem
+**/*.p12
+**/*.pfx
+**/*.keystore
+config/secrets.json
+config/local.json
+.secrets
+secrets.json
+api-keys.json
+credentials.json
+
+# GitHub-specific security patterns
+# Common files that bad actors scan for
+.github/secrets/
+.github/tokens/
+github_token
+github-token
+GITHUB_TOKEN
+ACCESS_TOKEN
+PERSONAL_ACCESS_TOKEN
+.github-token
+.env.github
+.github.env
+
+# Common backdoor/malware patterns that attackers look for
+backdoor.*
+reverse-shell.*
+shell.*
+exploit.*
+payload.*
+malware.*
+trojan.*
+virus.*
+keylogger.*
+rootkit.*
+
+# Common credential file patterns
+password.*
+passwd.*
+credentials.*
+token.*
+auth.*
+oauth.*
+jwt.*
+session.*
+cookie.*
+private.*
+confidential.*
+
+# AWS credentials (common target)
+.aws/
+aws-credentials
+aws_credentials
+AWS_ACCESS_KEY_ID
+AWS_SECRET_ACCESS_KEY
+
+# Database credentials
+db-config.*
+database.json
+db.json
+mysql.*
+postgres.*
+mongodb.*
+redis.*
+
+# SSH keys and certificates
+id_rsa
+id_dsa
+id_ed25519
+id_ecdsa
+*.pub
+authorized_keys
+known_hosts
+ssh_config
+
+# SSL/TLS certificates
+*.crt
+*.cert
+*.ca-bundle
+*.p7b
+*.p7s
+*.spc
+
+# ================
+# OS Generated Files
+# ================
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ================
+# IDEs & Editors
+# ================
+# VS Code
+.vscode/settings.json
+.vscode/launch.json
+.vscode/extensions.json
+.vscode/*.code-workspace
+
+# Except these VS Code files (keep them)
+!.vscode/tasks.json
+!.vscode/extensions.json
+
+# JetBrains IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+.idea_modules/
+
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# Vim
+*.swp
+*.swo
+*~
+.vim/
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# ================
+# Logs
+# ================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Runtime logs
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# ================
+# Temporary Files
+# ================
+tmp/
+temp/
+.tmp/
+.temp/
+*.tmp
+*.temp
+*.cache
+.cache/
+
+# ================
+# Package Managers
+# ================
+# npm
+package-lock.json  # Remove this line if you want to track package-lock.json
+.npm/
+.node_repl_history
+
+# Yarn
+yarn.lock  # Remove this line if you want to track yarn.lock
+.yarn/
+.yarnrc.yml
+.pnp.*
+
+# pnpm
+pnpm-lock.yaml  # Remove this line if you want to track pnpm-lock.yaml
+.pnpm-store/
+
+# Bun
+bun.lockb
+
+# ================
+# Testing
+# ================
+coverage/
+.coverage
+.nyc_output/
+test-results/
+junit.xml
+*.lcov
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Jest
+jest-coverage/
+
+# ================
+# Documentation
+# ================
+docs/build/
+.docusaurus/
+
+# ================
+# Security & CI/CD
+# ================
+# GitHub Actions
+.github/workflows/secrets/
+
+# Security scanning
+.snyk
+security-report.json
+
+# Docker
+.docker/
+Dockerfile.local
+docker-compose.override.yml
+
+# ===========================
+# PUBLIC REPOSITORY SECURITY
+# ===========================
+# Patterns that bad actors commonly scan for on GitHub
+
+# Configuration files that might contain secrets
+config.production.js
+config.prod.js
+production.json
+prod.json
+staging.json
+development.json
+dev.json
+
+# Backup files that might expose sensitive data
+*.sql
+*.dump
+*.backup
+backup.*
+*_backup.*
+*.bak.*
+
+# Log files that might contain sensitive information
+*.log.*
+application.log
+error.log
+access.log
+security.log
+
+# Common deployment files
+docker-compose.prod.yml
+docker-compose.production.yml
+Dockerfile.prod
+.dockerignore.prod
+kubernetes.yml
+k8s.yml
+helm-values.yml
+
+# CI/CD files that might contain secrets
+.travis.yml.bak
+.circle.yml.bak
+.gitlab-ci.yml.bak
+azure-pipelines.yml.bak
+jenkinsfile.bak
+
+# Common paths attackers look for
+/admin/
+/config/
+/credentials/
+/keys/
+/certs/
+/private/
+/secret/
+/tokens/
+/auth/
+/oauth/
+
+# File extensions commonly containing secrets
+*.env.*
+*.config.*
+*.conf.*
+*.ini.*
+*.properties.*
+*.yaml.*
+*.yml.*
+.htpasswd
+.htaccess
+
+# Common service account files
+service-account.*
+serviceaccount.*
+gcp-key.*
+azure-credentials.*
+firebase-adminsdk.*
+
+# Common API configuration
+api-config.*
+client-secret.*
+webhook-secret.*
+
+# Development tools that might expose data
+.vscode/settings.json
+.idea/workspace.xml
+.idea/misc.xml
+
+# ================
+# Database
+# ================
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+
+# ================
+# Archives
+# ================
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# ================
+# Extension Specific
+# ================
+# Auto Continue extension data
+/user-patterns.json
+/learned-patterns.json
+/extension-cache/
+/performance-metrics.json
+
+# Backup files
+*.backup
+*.bak
+*.old
+*~
+
+# ===============================
+# VS CODE EXTENSION SECURITY
+# ===============================
+# Files that could expose sensitive extension data
+
+# Extension development keys
+extension-private-key.*
+extension-secret.*
+marketplace-token.*
+publisher-token.*
+vsce-token.*
+
+# Extension user data that might contain sensitive code patterns
+user-data/
+extension-data/
+learned-data/
+training-data/
+pattern-cache/
+user-cache/
+
+# Extension analytics that might expose usage patterns
+analytics/
+telemetry/
+usage-data/
+metrics-data/
+
+# Extension configuration that might contain API keys
+extension-config.json
+ext-config.json
+private-config.json
+
+# Test data that might contain real code samples
+test-data/
+sample-code/
+example-patterns/
+real-world-examples/
+
+# Extension debugging files
+debug-output/
+debug-logs/
+extension-debug/
+host-debug/
+
+# Package signing and certificates for extensions
+*.p7s
+*.sig
+extension.cer
+publisher.cer
+
+# VS Code marketplace files
+.vsce/
+marketplace-config/
+publisher-config/
+
+# ================
+# Optimization
+# ================
+# Image optimization cache
+.imageoptim-cache/
+
+# Webpack
+.webpack/
+
+# Parcel
+.parcel-cache/
+
+# Next.js
+.next/
+
+# Nuxt.js
+.nuxt/
+
+# Gatsby
+.cache/
+public/
+
+# ================
+# Local Development
+# ================
+# Local configuration
+local.json
+config.local.json
+.local
+*.local
+
+# Development databases
+dev.db
+development.db
+
+# Local certificates
+localhost.pem
+localhost-key.pem
+
+# ================
+# Analytics & Monitoring
+# ================
+# Analytics
+.analytics/
+analytics-data.json
+
+# Monitoring
+.monitoring/
+metrics.json
+
+# ================
+# Custom Patterns
+# ================
+# Add your project-specific ignores here
+# Example:
+# /my-secret-folder/
+# config/production.json

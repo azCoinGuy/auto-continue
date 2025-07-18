@@ -1,0 +1,192 @@
+{
+  "name": "auto-continue",
+  "displayName": "Auto Continue",
+  "description": "Automatically continues code execution and development workflows",
+  "version": "0.0.1",
+  "publisher": "auto-continue-dev",
+  "engines": {
+    "vscode": "^1.102.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "auto-continue.start",
+        "title": "Start Auto Continue",
+        "category": "Auto Continue"
+      },
+      {
+        "command": "auto-continue.stop",
+        "title": "Stop Auto Continue",
+        "category": "Auto Continue"
+      },
+      {
+        "command": "auto-continue.continueTyping",
+        "title": "Continue Typing Current Pattern",
+        "category": "Auto Continue"
+      },
+      {
+        "command": "auto-continue.toggleMode",
+        "title": "Toggle Auto Continue Mode",
+        "category": "Auto Continue"
+      },
+      {
+        "command": "auto-continue.showStatistics",
+        "title": "Show Statistics",
+        "category": "Auto Continue"
+      },
+      {
+        "command": "auto-continue.exportSettings",
+        "title": "Export Settings",
+        "category": "Auto Continue"
+      },
+      {
+        "command": "auto-continue.importSettings",
+        "title": "Import Settings",
+        "category": "Auto Continue"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "auto-continue.continueTyping",
+        "key": "ctrl+shift+c",
+        "mac": "cmd+shift+c",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "auto-continue.toggleMode",
+        "key": "ctrl+shift+a",
+        "mac": "cmd+shift+a",
+        "when": "editorTextFocus"
+      }
+    ],
+    "configuration": {
+      "title": "Auto Continue",
+      "properties": {
+        "autoContinue.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable/disable Auto Continue functionality"
+        },
+        "autoContinue.delay": {
+          "type": "number",
+          "default": 1000,
+          "description": "Delay in milliseconds before auto-continuing"
+        },
+        "autoContinue.maxLines": {
+          "type": "number",
+          "default": 10,
+          "description": "Maximum number of lines to auto-continue"
+        },
+        "autoContinue.enabledLanguages": {
+          "type": "array",
+          "default": [
+            "javascript",
+            "typescript",
+            "python",
+            "java",
+            "csharp",
+            "cpp",
+            "c",
+            "go",
+            "rust",
+            "php"
+          ],
+          "description": "List of languages where Auto Continue is enabled"
+        },
+        "autoContinue.useInlineCompletion": {
+          "type": "boolean",
+          "default": true,
+          "description": "Use inline completion provider for better integration"
+        },
+        "autoContinue.learnPatterns": {
+          "type": "boolean",
+          "default": true,
+          "description": "Learn and adapt to user coding patterns"
+        },
+        "autoContinue.customTemplates": {
+          "type": "object",
+          "default": {},
+          "description": "Custom templates for code patterns"
+        },
+        "autoContinue.showPreview": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show preview of auto-continuation before applying"
+        },
+        "autoContinue.minimumTriggerLength": {
+          "type": "number",
+          "default": 3,
+          "description": "Minimum length of pattern before triggering auto-continue"
+        },
+        "autoContinue.useLLM": {
+          "type": "boolean",
+          "default": false,
+          "description": "Use LLM providers for intelligent code completion"
+        },
+        "autoContinue.llmProvider": {
+          "type": "string",
+          "enum": [
+            "openai",
+            "anthropic",
+            "local",
+            "copilot",
+            "codewhisperer"
+          ],
+          "default": "openai",
+          "description": "LLM provider to use for code completion"
+        },
+        "autoContinue.llmApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "API key for LLM provider (stored securely in VS Code settings, never in source code)"
+        },
+        "autoContinue.llmModel": {
+          "type": "string",
+          "default": "gpt-4",
+          "description": "Specific LLM model to use (e.g., gpt-4, claude-3, etc.)"
+        },
+        "autoContinue.fallbackToRules": {
+          "type": "boolean",
+          "default": true,
+          "description": "Fallback to rule-based patterns if LLM is unavailable"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "npm run check-types && npm run lint && node esbuild.js",
+    "watch": "npm-run-all -p watch:*",
+    "watch:esbuild": "node esbuild.js --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "package": "npm run check-types && npm run lint && node esbuild.js --production",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vscode-test",
+    "security-check": "bash scripts/security-check.sh",
+    "presecurity-check": "npm audit",
+    "prepublish": "npm run security-check"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^20.19.8",
+    "@types/vscode": "^1.102.0",
+    "@typescript-eslint/eslint-plugin": "^8.31.1",
+    "@typescript-eslint/parser": "^8.31.1",
+    "@vscode/test-cli": "^0.0.11",
+    "@vscode/test-electron": "^2.5.2",
+    "detect-secrets": "^1.0.6",
+    "esbuild": "^0.25.3",
+    "eslint": "^9.25.1",
+    "npm-run-all": "^4.1.5",
+    "typescript": "^5.8.3"
+  }
+}
