@@ -27,6 +27,11 @@ jobs:
       run: |
         echo "🔍 Running TypeScript type checking..."
         npm run check-types
+        
+    - name: Build project
+      run: |
+        echo "🔨 Building project..."
+        node esbuild.js
       
     - name: Run linting (if possible)
       run: |
@@ -48,7 +53,7 @@ jobs:
       uses: trufflesecurity/trufflehog@main
       with:
         path: ./
-        extra_args: --only-verified
+        extra_args: --only-verified --exclude-paths=node_modules,dist,out,.git,.vscode
         
   dependency-check:
     runs-on: ubuntu-latest

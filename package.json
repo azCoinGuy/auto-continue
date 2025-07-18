@@ -215,6 +215,7 @@
   "scripts": {
     "vscode:prepublish": "npm run check-types && node esbuild.js --production",
     "compile": "npm run check-types && node esbuild.js && npm run lint",
+    "compile-clean": "rm -rf dist && npm run compile",
     "watch": "npm-run-all -p watch:*",
     "watch:esbuild": "node esbuild.js --watch",
     "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
