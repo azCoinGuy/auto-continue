@@ -186,7 +186,7 @@
         },
         "autoContinue.chat.enabled": {
           "type": "boolean",
-          "default": false,
+          "default": true,
           "description": "Enable automatic continuation of chat conversations"
         },
         "autoContinue.chat.continueDelay": {

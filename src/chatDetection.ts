@@ -3,7 +3,10 @@ import * as vscode from 'vscode';
 export class ChatInterfaceDetector {
     private static readonly CHAT_INDICATORS = [
         // GitHub Copilot Chat indicators
+        'github.copilot-chat',
         'github.copilot.chat',
+        'workbench.panel.chatSidebar',
+        'workbench.view.chatSidebar',
         'copilot-chat',
         'chat-view',
         
@@ -25,20 +28,28 @@ export class ChatInterfaceDetector {
         'button[title*="Continue"]',
         'button[aria-label*="Continue"]',
         '.btn-continue',
-        '[role="button"][aria-label*="continue"]'
+        '[role="button"][aria-label*="continue"]',
+        // GitHub Copilot specific selectors
+        '.chat-continue-button',
+        '[data-testid="chat-continue-button"]',
+        'button[data-testid*="continue"]'
     ];
 
     public static async detectActiveChatInterface(): Promise<string | null> {
         try {
-            // Method 1: Check active webview panels
+            // Method 1: Check if GitHub Copilot Chat is active
+            const copilotChat = await this.checkCopilotChat();
+            if (copilotChat) return copilotChat;
+
+            // Method 2: Check active webview panels
             const activePanel = await this.checkWebviewPanels();
             if (activePanel) return activePanel;
 
-            // Method 2: Check if chat commands are available
+            // Method 3: Check if chat commands are available
             const chatCommand = await this.checkChatCommands();
             if (chatCommand) return chatCommand;
 
-            // Method 3: Check terminal titles for chat sessions
+            // Method 4: Check terminal titles for chat sessions
             const chatTerminal = this.checkTerminals();
             if (chatTerminal) return chatTerminal;
 
@@ -47,6 +58,26 @@ export class ChatInterfaceDetector {
             console.error('Error detecting chat interface:', error);
             return null;
         }
+    }
+
+    private static async checkCopilotChat(): Promise<string | null> {
+        try {
+            // Try to access GitHub Copilot Chat through commands
+            const allCommands = await vscode.commands.getCommands(true);
+            const copilotCommands = allCommands.filter(cmd => 
+                cmd.includes('github.copilot-chat') || 
+                cmd.includes('github.copilot.chat') ||
+                cmd.includes('workbench.panel.chatSidebar')
+            );
+            
+            if (copilotCommands.length > 0) {
+                return 'github-copilot-chat';
+            }
+        } catch (error) {
+            console.error('Error checking Copilot Chat:', error);
+        }
+        
+        return null;
     }
 
     private static async checkWebviewPanels(): Promise<string | null> {

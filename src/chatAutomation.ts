@@ -99,6 +99,18 @@ export class ChatAutomationManager {
             }
             this.lastActionTime = now;
 
+            // Method 1: Check for GitHub Copilot Chat continuation
+            await this.checkCopilotChatContinuation();
+
+            // Method 2: Check for continue buttons (existing method)
+            const chatInterface = await ChatInterfaceDetector.detectActiveChatInterface();
+            if (!chatInterface) return;
+
+            const continueButtons = await ChatInterfaceDetector.findContinueButtons();
+            if (continueButtons.length > 0) {
+                await this.performContinueAction(chatInterface);
+            }
+
             // Try to detect active chat sessions and continue buttons
             await this.detectAndHandleChatContinuations();
         } catch (error) {
@@ -338,6 +350,114 @@ ${sessions.map(s => `• Session ${s.id}: ${s.continuationCount} continuations`)
             // Restart with new config
             this.stop();
             this.start();
+        }
+    }
+
+    private async checkCopilotChatContinuation(): Promise<void> {
+        try {
+            // Method 1: Try to send a continuation command to Copilot Chat
+            const copilotCommands = [
+                'github.copilot-chat.continue',
+                'github.copilot.chat.continue',
+                'workbench.action.chat.continue'
+            ];
+
+            for (const command of copilotCommands) {
+                try {
+                    const allCommands = await vscode.commands.getCommands(true);
+                    if (allCommands.includes(command)) {
+                        await vscode.commands.executeCommand(command);
+                        this.logContinuation('Copilot Command', command);
+                        return;
+                    }
+                } catch (error) {
+                    // Command failed, try next one
+                    continue;
+                }
+            }
+
+            // Method 2: Try to send "continue" as a chat message
+            await this.sendContinueMessage();
+
+        } catch (error) {
+            console.log('Copilot chat continuation failed:', error);
+        }
+    }
+
+    private async sendContinueMessage(): Promise<void> {
+        try {
+            // Try to execute a chat command with "continue" message
+            const chatCommands = [
+                'github.copilot-chat.sendMessage',
+                'workbench.action.chat.sendMessage'
+            ];
+
+            for (const command of chatCommands) {
+                try {
+                    const allCommands = await vscode.commands.getCommands(true);
+                    if (allCommands.includes(command)) {
+                        await vscode.commands.executeCommand(command, 'continue');
+                        this.logContinuation('Chat Message', 'continue');
+                        return;
+                    }
+                } catch (error) {
+                    continue;
+                }
+            }
+
+            // Fallback: Try to focus chat and send continue via keyboard simulation
+            await this.focusChatAndSendContinue();
+
+        } catch (error) {
+            console.log('Send continue message failed:', error);
+        }
+    }
+
+    private async focusChatAndSendContinue(): Promise<void> {
+        try {
+            // Try to focus the chat panel
+            const focusCommands = [
+                'workbench.panel.chatSidebar.focus',
+                'github.copilot-chat.focus',
+                'workbench.view.chatSidebar.focus'
+            ];
+
+            for (const command of focusCommands) {
+                try {
+                    const allCommands = await vscode.commands.getCommands(true);
+                    if (allCommands.includes(command)) {
+                        await vscode.commands.executeCommand(command);
+                        // Wait a bit for the chat to focus
+                        await this.delay(100);
+                        
+                        // Try to send "continue" command
+                        await vscode.commands.executeCommand('type', { text: 'continue' });
+                        await this.delay(50);
+                        await vscode.commands.executeCommand('workbench.action.acceptSelectedSuggestion');
+                        
+                        this.logContinuation('Keyboard Input', 'continue typed');
+                        return;
+                    }
+                } catch (error) {
+                    continue;
+                }
+            }
+        } catch (error) {
+            console.log('Focus chat and send continue failed:', error);
+        }
+    }
+
+    private async performContinueAction(chatInterface: string): Promise<void> {
+        try {
+            await this.delay(this.config.continueDelay);
+            
+            // Try multiple continuation methods
+            await this.checkCopilotChatContinuation();
+            
+            this.logContinuation('Continue Action', `Executed for ${chatInterface}`);
+            
+        } catch (error) {
+            console.log('Perform continue action failed:', error);
         }
     }
 
