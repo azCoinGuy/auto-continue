@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Auto Continue VS Code Extension
 
 A powerful and comprehensive VS Code extension that automatically continues code patterns and development workflows, making coding more efficient and reducing repetitive typing. Built with advanced language support, machine learning capabilities, and performance optimization.
