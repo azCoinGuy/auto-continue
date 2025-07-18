@@ -1,6 +1,6 @@
 # Auto Continue VS Code Extension
 
-A powerful and comprehensive VS Code extension that automatically continues code patterns and development workflows, making coding more efficient and reducing repetitive typing. Built with advanced language support, machine learning capabilities, and performance optimization.
+A powerful and comprehensive VS Code extension that automatically continues code patterns and development workflows, making coding more efficient and reducing repetitive typing. Built with advanced language support, machine learning capabilities, and **revolutionary chat automation** for unattended AI conversations.
 
 ## 🚀 Features
 
@@ -8,6 +8,7 @@ A powerful and comprehensive VS Code extension that automatically continues code
 - **🔍 Intelligent Pattern Detection**: Advanced recognition of code patterns across multiple programming languages
 - **⚡ Smart Code Continuation**: Context-aware automatic code completion with appropriate templates  
 - **🧠 Machine Learning**: Learns from your coding patterns and adapts to your style
+- **🤖 Chat Auto-Continue**: **NEW!** Automatically continues truncated AI chat conversations - go get coffee while your code gets generated!
 - **⚙️ Highly Configurable**: Extensive customization options for different workflows
 - **📊 Performance Optimized**: Built-in caching, debouncing, and performance monitoring
 
@@ -15,10 +16,29 @@ A powerful and comprehensive VS Code extension that automatically continues code
 - **🌐 Multi-Language Support**: JavaScript, TypeScript, Python, Java, C#, C++, C, Go, Rust, PHP
 - **💡 Inline Completion Provider**: Seamless integration with VS Code's IntelliSense
 - **📝 Custom Templates**: Define your own code templates and patterns
+- **💬 Chat Interface Support**: Works with GitHub Copilot Chat, VS Code Chat, and other AI chat extensions
 - **⌨️ Smart Keyboard Shortcuts**: Quick access to continuation features
 - **📈 Usage Statistics**: Track your productivity improvements
 - **💾 Settings Import/Export**: Share configurations across installations
 - **🎯 Preview Mode**: See continuations before applying them
+
+## 🤖 Chat Auto-Continue (NEW!)
+
+**The feature you've been waiting for!** Automatically detect and click "Continue" buttons in AI chat interfaces, allowing long conversations to complete while you're away.
+
+### Key Benefits
+- ☕ **Go Get Coffee**: Let AI complete long code generation tasks unattended
+- 🔄 **Smart Detection**: Recognizes truncation patterns and continues automatically  
+- 🛡️ **Safe Limits**: Configurable maximum continuations prevent infinite loops
+- 🎯 **Multi-Interface**: Works with Copilot Chat, VS Code Chat, and more
+
+**👉 [Read the Complete Chat Automation Guide](CHAT-AUTOMATION.md)**
+
+### Quick Start
+1. Enable: `autoContinue.chat.enabled: true`
+2. Toggle: `Cmd/Ctrl + Shift + Alt + C`
+3. Start a long AI conversation
+4. Go get coffee ☕ - the extension handles the rest!
 
 ## 📋 Supported Languages & Patterns
 

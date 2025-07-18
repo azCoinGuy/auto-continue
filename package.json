@@ -7,6 +7,10 @@
   "engines": {
     "vscode": "^1.102.0"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/azCoinGuy/auto-continue.git"
+  },
   "categories": [
     "Other"
   ],
@@ -48,6 +52,26 @@
         "command": "auto-continue.importSettings",
         "title": "Import Settings",
         "category": "Auto Continue"
+      },
+      {
+        "command": "auto-continue.startChatAutomation",
+        "title": "Start Chat Auto-Continue",
+        "category": "Auto Continue"
+      },
+      {
+        "command": "auto-continue.stopChatAutomation",
+        "title": "Stop Chat Auto-Continue",
+        "category": "Auto Continue"
+      },
+      {
+        "command": "auto-continue.toggleChatAutomation",
+        "title": "Toggle Chat Auto-Continue",
+        "category": "Auto Continue"
+      },
+      {
+        "command": "auto-continue.showChatStatistics",
+        "title": "Show Chat Statistics",
+        "category": "Auto Continue"
       }
     ],
     "keybindings": [
@@ -62,6 +86,11 @@
         "key": "ctrl+shift+a",
         "mac": "cmd+shift+a",
         "when": "editorTextFocus"
+      },
+      {
+        "command": "auto-continue.toggleChatAutomation",
+        "key": "ctrl+shift+alt+c",
+        "mac": "cmd+shift+alt+c"
       }
     ],
     "configuration": {
@@ -154,12 +183,37 @@
           "type": "boolean",
           "default": true,
           "description": "Fallback to rule-based patterns if LLM is unavailable"
+        },
+        "autoContinue.chat.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable automatic continuation of chat conversations"
+        },
+        "autoContinue.chat.continueDelay": {
+          "type": "number",
+          "default": 2000,
+          "description": "Delay in milliseconds before automatically clicking continue buttons"
+        },
+        "autoContinue.chat.maxContinuations": {
+          "type": "number",
+          "default": 10,
+          "description": "Maximum number of automatic continuations per chat session"
+        },
+        "autoContinue.chat.monitorInterval": {
+          "type": "number",
+          "default": 1000,
+          "description": "How often to check for continue buttons (milliseconds)"
+        },
+        "autoContinue.chat.smartDetection": {
+          "type": "boolean",
+          "default": true,
+          "description": "Use smart detection to identify continuation opportunities"
         }
       }
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run package",
+    "vscode:prepublish": "npm run check-types && node esbuild.js --production",
     "compile": "npm run check-types && npm run lint && node esbuild.js",
     "watch": "npm-run-all -p watch:*",
     "watch:esbuild": "node esbuild.js --watch",

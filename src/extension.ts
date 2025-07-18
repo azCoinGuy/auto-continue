@@ -1,5 +1,6 @@
 // The module 'vscode' contains the VS Code extensibility API
 import * as vscode from 'vscode';
+import { ChatAutomationManager } from './chatAutomation';
 
 interface AutoContinueConfig {
 	enabled: boolean;
@@ -655,6 +656,7 @@ export function activate(context: vscode.ExtensionContext) {
 	console.log('Auto Continue extension is now active!');
 
 	const autoContinueManager = new AutoContinueManager(context);
+	const chatAutomationManager = new ChatAutomationManager(context);
 
 	// Register commands
 	const commands = [
@@ -664,15 +666,22 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand('auto-continue.continueTyping', () => autoContinueManager.continueCurrentPattern()),
 		vscode.commands.registerCommand('auto-continue.showStatistics', () => autoContinueManager.showStatistics()),
 		vscode.commands.registerCommand('auto-continue.exportSettings', () => autoContinueManager.exportSettings()),
-		vscode.commands.registerCommand('auto-continue.importSettings', () => autoContinueManager.importSettings())
+		vscode.commands.registerCommand('auto-continue.importSettings', () => autoContinueManager.importSettings()),
+		
+		// Chat automation commands
+		vscode.commands.registerCommand('auto-continue.startChatAutomation', () => chatAutomationManager.start()),
+		vscode.commands.registerCommand('auto-continue.stopChatAutomation', () => chatAutomationManager.stop()),
+		vscode.commands.registerCommand('auto-continue.toggleChatAutomation', () => chatAutomationManager.toggle()),
+		vscode.commands.registerCommand('auto-continue.showChatStatistics', () => chatAutomationManager.showStatistics())
 	];
 
 	context.subscriptions.push(...commands);
 
 	// Listen for configuration changes
-	const configChangeListener = vscode.workspace.onDidChangeConfiguration((event) => {
+	const configChangeListener = vscode.workspace.onDidChangeConfiguration((event: vscode.ConfigurationChangeEvent) => {
 		if (event.affectsConfiguration('autoContinue')) {
 			vscode.window.showInformationMessage('Auto Continue configuration updated!');
+			chatAutomationManager.updateConfiguration();
 		}
 	});
 
@@ -680,7 +689,10 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Dispose handler
 	context.subscriptions.push({
-		dispose: () => autoContinueManager.dispose()
+		dispose: () => {
+			autoContinueManager.dispose();
+			chatAutomationManager.dispose();
+		}
 	});
 
 	vscode.window.showInformationMessage('Auto Continue extension loaded! Use Cmd+Shift+A to toggle or Cmd+Shift+C to continue current pattern.');
