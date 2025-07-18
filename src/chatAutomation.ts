@@ -22,6 +22,8 @@ export class ChatAutomationManager {
     private monitorTimer: any | undefined;
     private statusBarItem: vscode.StatusBarItem;
     private isMonitoring: boolean = false;
+    private lastActionTime: number = 0;
+    private readonly MIN_ACTION_INTERVAL = 500; // Minimum 500ms between actions
 
     constructor(private context: vscode.ExtensionContext) {
         this.loadConfig();
@@ -90,6 +92,13 @@ export class ChatAutomationManager {
 
     private async checkForContinueButtons() {
         try {
+            // Rate limiting: ensure minimum interval between actions
+            const now = Date.now();
+            if (now - this.lastActionTime < this.MIN_ACTION_INTERVAL) {
+                return;
+            }
+            this.lastActionTime = now;
+
             // Try to detect active chat sessions and continue buttons
             await this.detectAndHandleChatContinuations();
         } catch (error) {

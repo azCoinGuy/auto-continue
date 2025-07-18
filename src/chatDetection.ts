@@ -134,6 +134,12 @@ export class ChatCommandExecutor {
     public static async executeContinueCommand(): Promise<boolean> {
         for (const command of this.CHAT_CONTINUE_COMMANDS) {
             try {
+                // Validate command name to prevent injection
+                if (!/^[a-zA-Z0-9._-]+$/.test(command)) {
+                    console.warn('Blocked potentially unsafe command:', command);
+                    continue;
+                }
+                
                 const allCommands = await vscode.commands.getCommands(true);
                 if (allCommands.includes(command)) {
                     await vscode.commands.executeCommand(command);
@@ -151,6 +157,19 @@ export class ChatCommandExecutor {
 
     public static async sendKeyboardShortcut(shortcut: string): Promise<boolean> {
         try {
+            // Validate shortcut input to prevent injection
+            const allowedShortcuts = /^[a-zA-Z0-9+\-\s]*$/;
+            if (!allowedShortcuts.test(shortcut)) {
+                console.warn('Blocked potentially unsafe keyboard shortcut:', shortcut);
+                return false;
+            }
+            
+            // Limit shortcut length to prevent abuse
+            if (shortcut.length > 50) {
+                console.warn('Shortcut too long, blocking:', shortcut);
+                return false;
+            }
+            
             await vscode.commands.executeCommand('workbench.action.sendInputSequence', {
                 text: shortcut
             });
@@ -163,9 +182,19 @@ export class ChatCommandExecutor {
 
     public static async sendTextToActiveTerminal(text: string): Promise<boolean> {
         try {
+            // Sanitize input to prevent command injection
+            const sanitizedText = text.replace(/[;&|`$()]/g, '').trim();
+            
+            // Only allow specific safe commands for chat continuation
+            const allowedCommands = ['continue', 'c', 'yes', 'y', '\n'];
+            if (!allowedCommands.includes(sanitizedText.toLowerCase())) {
+                console.warn('Blocked potentially unsafe terminal command:', text);
+                return false;
+            }
+            
             const activeTerminal = vscode.window.activeTerminal;
             if (activeTerminal) {
-                activeTerminal.sendText(text);
+                activeTerminal.sendText(sanitizedText);
                 return true;
             }
         } catch (error) {

@@ -94,12 +94,30 @@ class PatternLearner {
 
 	public importPatterns(data: string) {
 		try {
-			const entries = JSON.parse(data);
-			this.patterns = new Map(entries.map(([key, value]: [string, any]) => [
+			// Sanitize JSON parsing to prevent prototype pollution
+			const rawEntries = JSON.parse(data);
+			if (!Array.isArray(rawEntries)) {
+				throw new Error('Invalid data format: expected array');
+			}
+			
+			// Validate and sanitize each entry
+			const validatedEntries = rawEntries.filter(([key, value]) => {
+				return typeof key === 'string' && 
+				       value && 
+				       typeof value === 'object' && 
+				       !key.includes('__proto__') && 
+				       !key.includes('constructor') && 
+				       !key.includes('prototype');
+			});
+			
+			this.patterns = new Map(validatedEntries.map(([key, value]: [string, any]) => [
 				key,
 				{
-					...value,
-					lastUsed: new Date(value.lastUsed)
+					trigger: String(value.trigger || ''),
+					completion: String(value.completion || ''),
+					language: String(value.language || ''),
+					frequency: Number(value.frequency) || 0,
+					lastUsed: value.lastUsed ? new Date(value.lastUsed) : new Date()
 				}
 			]));
 		} catch (error) {
@@ -630,10 +648,17 @@ class AutoContinueManager {
 		if (uris && uris[0]) {
 			try {
 				const content = await vscode.workspace.fs.readFile(uris[0]);
-				const settings = JSON.parse(content.toString());
+				// Sanitize JSON parsing to prevent prototype pollution
+				const rawSettings = JSON.parse(content.toString());
 				
-				if (settings.learnedPatterns) {
-					this.patternLearner.importPatterns(settings.learnedPatterns);
+				// Validate settings object structure
+				if (!rawSettings || typeof rawSettings !== 'object') {
+					throw new Error('Invalid settings format');
+				}
+				
+				// Safely import learned patterns if they exist
+				if (rawSettings.learnedPatterns && typeof rawSettings.learnedPatterns === 'string') {
+					this.patternLearner.importPatterns(rawSettings.learnedPatterns);
 					this.saveLearnedPatterns();
 				}
 
