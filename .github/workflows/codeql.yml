@@ -40,12 +40,16 @@ jobs:
         queries: security-extended,security-and-quality
 
     - name: Install dependencies
-      run: npm ci
+      run: |
+        echo "📦 Installing dependencies..."
+        npm ci
 
     - name: Build TypeScript
       run: |
+        echo "🔨 Building TypeScript..."
         npm run check-types
-        npm run compile
+        echo "🔨 Building with esbuild..."
+        node esbuild.js --production
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
