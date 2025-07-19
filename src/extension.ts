@@ -697,7 +697,16 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand('auto-continue.startChatAutomation', () => chatAutomationManager.start()),
 		vscode.commands.registerCommand('auto-continue.stopChatAutomation', () => chatAutomationManager.stop()),
 		vscode.commands.registerCommand('auto-continue.toggleChatAutomation', () => chatAutomationManager.toggle()),
-		vscode.commands.registerCommand('auto-continue.showChatStatistics', () => chatAutomationManager.showStatistics())
+		vscode.commands.registerCommand('auto-continue.showChatStatistics', () => chatAutomationManager.showStatistics()),
+		vscode.commands.registerCommand('auto-continue.testChatContinuation', async () => {
+			vscode.window.showInformationMessage('🔧 Testing GitHub Copilot Chat continuation...');
+			try {
+				await chatAutomationManager.testContinuation();
+				vscode.window.showInformationMessage('✅ Chat continuation test completed! Check the output for results.');
+			} catch (error) {
+				vscode.window.showErrorMessage(`❌ Chat continuation test failed: ${error}`);
+			}
+		})
 	];
 
 	context.subscriptions.push(...commands);

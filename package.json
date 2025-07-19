@@ -72,6 +72,11 @@
         "command": "auto-continue.showChatStatistics",
         "title": "Show Chat Statistics",
         "category": "Auto Continue"
+      },
+      {
+        "command": "auto-continue.testChatContinuation",
+        "title": "Test GitHub Copilot Chat Continuation",
+        "category": "Auto Continue"
       }
     ],
     "keybindings": [
