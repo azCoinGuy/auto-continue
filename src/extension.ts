@@ -1,6 +1,7 @@
 // The module 'vscode' contains the VS Code extensibility API
 import * as vscode from 'vscode';
 import { ChatAutomationManager } from './chatAutomation';
+import { CopilotIntegration, createCopilotIntegration, CopilotUtils } from './copilotIntegration';
 
 interface AutoContinueConfig {
 	enabled: boolean;
@@ -678,10 +679,41 @@ class AutoContinueManager {
 
 // Extension activation
 export function activate(context: vscode.ExtensionContext) {
-	console.log('Auto Continue extension is now active!');
+	console.log('🚀 Auto Continue extension is now active!');
 
 	const autoContinueManager = new AutoContinueManager(context);
 	const chatAutomationManager = new ChatAutomationManager(context);
+	
+	// Initialize free Copilot integration
+	const copilotIntegration = createCopilotIntegration({
+		enabled: true,
+		autoTriggerDelay: 2000,
+		debugMode: true
+	});
+
+	// Auto-start chat automation if enabled
+	const config = vscode.workspace.getConfiguration('autoContinue.chat');
+	if (config.get('enabled', true)) {
+		console.log('🤖 Auto-starting Chat Automation...');
+		chatAutomationManager.start();
+		
+		// Activate Copilot integration for enhanced chat automation
+		copilotIntegration.activate().then(() => {
+			console.log('🔗 Copilot integration activated');
+		}).catch((error) => {
+			console.warn('⚠️ Copilot integration failed to activate:', error);
+		});
+		
+		vscode.window.showInformationMessage('🤖 Auto Continue Chat is now active!', 'Test Now', 'Settings').then((choice) => {
+			if (choice === 'Test Now') {
+				vscode.commands.executeCommand('auto-continue.testChatContinuation');
+			} else if (choice === 'Settings') {
+				vscode.commands.executeCommand('workbench.action.openSettings', 'autoContinue.chat');
+			}
+		});
+	} else {
+		console.log('⏸️ Chat Automation disabled in settings');
+	}
 
 	// Register commands
 	const commands = [
@@ -706,6 +738,52 @@ export function activate(context: vscode.ExtensionContext) {
 			} catch (error) {
 				vscode.window.showErrorMessage(`❌ Chat continuation test failed: ${error}`);
 			}
+		}),
+		
+		// New Copilot integration commands
+		vscode.commands.registerCommand('auto-continue.testCopilotIntegration', async () => {
+			vscode.window.showInformationMessage('🔧 Testing Copilot integration...');
+			try {
+				const result = await copilotIntegration.testIntegration();
+				if (result) {
+					vscode.window.showInformationMessage('✅ Copilot integration test PASSED!');
+				} else {
+					vscode.window.showWarningMessage('⚠️ Copilot integration test FAILED - Copilot may not be installed or active');
+				}
+			} catch (error) {
+				vscode.window.showErrorMessage(`❌ Copilot integration test error: ${error}`);
+			}
+		}),
+		
+		vscode.commands.registerCommand('auto-continue.showCopilotCommands', async () => {
+			try {
+				const commands = await CopilotUtils.getCopilotCommands();
+				if (commands.length === 0) {
+					vscode.window.showInformationMessage('No Copilot commands found - Copilot extension may not be installed');
+				} else {
+					const commandList = commands.join('\n• ');
+					vscode.window.showInformationMessage(
+						`Found ${commands.length} Copilot commands:\n\n• ${commandList}`,
+						{ modal: true }
+					);
+				}
+			} catch (error) {
+				vscode.window.showErrorMessage(`Error getting Copilot commands: ${error}`);
+			}
+		}),
+		
+		vscode.commands.registerCommand('auto-continue.simulateContinueClick', async () => {
+			vscode.window.showInformationMessage('🔄 Simulating Continue button click...');
+			try {
+				const success = await CopilotUtils.simulateContinueClick();
+				if (success) {
+					vscode.window.showInformationMessage('✅ Continue simulation successful!');
+				} else {
+					vscode.window.showWarningMessage('⚠️ Continue simulation failed - no active Copilot chat?');
+				}
+			} catch (error) {
+				vscode.window.showErrorMessage(`❌ Continue simulation error: ${error}`);
+			}
 		})
 	];
 
@@ -726,6 +804,7 @@ export function activate(context: vscode.ExtensionContext) {
 		dispose: () => {
 			autoContinueManager.dispose();
 			chatAutomationManager.dispose();
+			copilotIntegration.deactivate();
 		}
 	});
 

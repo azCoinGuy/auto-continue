@@ -77,6 +77,21 @@
         "command": "auto-continue.testChatContinuation",
         "title": "Test GitHub Copilot Chat Continuation",
         "category": "Auto Continue"
+      },
+      {
+        "command": "auto-continue.testCopilotIntegration",
+        "title": "Test Copilot Integration",
+        "category": "Auto Continue"
+      },
+      {
+        "command": "auto-continue.showCopilotCommands",
+        "title": "Show Available Copilot Commands",
+        "category": "Auto Continue"
+      },
+      {
+        "command": "auto-continue.simulateContinueClick",
+        "title": "Simulate Continue Button Click",
+        "category": "Auto Continue"
       }
     ],
     "keybindings": [
@@ -213,6 +228,36 @@
           "type": "boolean",
           "default": true,
           "description": "Use smart detection to identify continuation opportunities"
+        },
+        "autoContinue.copilot.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable enhanced Copilot integration for better auto-continue functionality"
+        },
+        "autoContinue.copilot.useKeyboardShortcuts": {
+          "type": "boolean",
+          "default": true,
+          "description": "Monitor and use Copilot keyboard shortcuts for automation"
+        },
+        "autoContinue.copilot.useCommandPalette": {
+          "type": "boolean",
+          "default": true,
+          "description": "Use VS Code command palette integration with Copilot"
+        },
+        "autoContinue.copilot.monitorChatView": {
+          "type": "boolean",
+          "default": true,
+          "description": "Monitor Copilot chat view for auto-continuation opportunities"
+        },
+        "autoContinue.copilot.autoTriggerDelay": {
+          "type": "number",
+          "default": 2000,
+          "description": "Delay before auto-triggering Copilot continuations (milliseconds)"
+        },
+        "autoContinue.copilot.debugMode": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable debug logging for Copilot integration"
         }
       }
     }

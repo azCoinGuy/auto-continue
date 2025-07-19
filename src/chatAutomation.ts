@@ -55,12 +55,14 @@ export class ChatAutomationManager {
     private loadConfig() {
         const config = vscode.workspace.getConfiguration('autoContinue.chat');
         this.config = {
-            enabled: config.get('enabled', false),
+            enabled: config.get('enabled', true), // Fixed: default to true
             continueDelay: config.get('continueDelay', 2000),
             maxContinuations: config.get('maxContinuations', 10),
             monitorInterval: config.get('monitorInterval', 1000),
             smartDetection: config.get('smartDetection', true)
         };
+        
+        console.log('🔧 Chat Auto-Continue Config Loaded:', this.config);
     }
 
     public start() {
@@ -136,30 +138,45 @@ export class ChatAutomationManager {
         if (now - this.lastActionTime < this.MIN_ACTION_INTERVAL) return;
 
         try {
-            // Step 1: Check if GitHub Copilot Chat needs continuation
-            const needsContinuation = await this.checkIfCopilotChatNeedsContinuation();
-            if (!needsContinuation && this.config.smartDetection) {
-                console.log('Smart detection: No continuation needed');
-                return;
+            console.log('🔍 Checking for GitHub Copilot Chat continuation opportunity...');
+
+            // Step 1: Always attempt continuation if monitoring is enabled (for debugging)
+            // Later we can add smarter detection, but for now let's make it work
+            let shouldContinue = true;
+
+            // Optional smart detection (can be disabled for testing)
+            if (this.config.smartDetection) {
+                const needsContinuation = await this.checkIfCopilotChatNeedsContinuation();
+                if (!needsContinuation) {
+                    console.log('💡 Smart detection: No continuation needed at this time');
+                    return;
+                }
             }
 
-            console.log('Attempting GitHub Copilot Chat continuation...');
+            if (shouldContinue) {
+                console.log('🚀 Attempting GitHub Copilot Chat continuation...');
 
-            // Step 2: Try the most direct Copilot Chat continuation
-            const success = await this.tryCopilotChatCommands();
-            if (success) {
-                this.lastActionTime = now;
-                this.logContinuation('Copilot Command', 'Direct command success');
-                return;
+                // Step 2: Try the most direct Copilot Chat continuation first
+                const success = await this.tryCopilotChatCommands();
+                
+                if (success) {
+                    this.lastActionTime = now;
+                    this.logContinuation('GitHub Copilot Commands', 'Direct command success');
+                    console.log('✅ Continuation attempt completed successfully');
+                    return;
+                } else {
+                    console.log('⚠️ Direct commands failed, trying alternative methods...');
+                    
+                    // Step 3: Try the legacy focus and send method
+                    await this.focusAndSendContinue();
+                    this.lastActionTime = now;
+                    this.logContinuation('Focus & Send Fallback', 'Alternative method used');
+                    console.log('✅ Fallback continuation attempt completed');
+                }
             }
-
-            // Step 3: Try focusing chat and sending continue
-            await this.focusAndSendContinue();
-            this.lastActionTime = now;
-            this.logContinuation('Focus & Send', 'Chat focus and continue sent');
 
         } catch (error) {
-            console.log('Continue conversation failed:', error);
+            console.error('❌ Error in detectAndContinueConversation:', error);
         }
     }
 
@@ -211,66 +228,95 @@ export class ChatAutomationManager {
     }
 
     private async tryCopilotChatCommands(): Promise<boolean> {
+        // Get all available commands to debug what's actually available
+        const allCommands = await vscode.commands.getCommands(true);
+        const copilotCommands = allCommands.filter(cmd => 
+            cmd.toLowerCase().includes('copilot') && 
+            (cmd.toLowerCase().includes('chat') || cmd.toLowerCase().includes('continue'))
+        );
+        
+        console.log('🔍 Available GitHub Copilot commands:', copilotCommands);
+
         const commands = [
-            // GitHub Copilot Chat specific commands (latest API)
-            'workbench.panel.chat.view.copilot.focus',
+            // GitHub Copilot Chat specific commands (most likely to work)
             'github.copilot.chat.continue',
             'github.copilot-chat.continue',
+            'workbench.panel.chat.view.copilot.focus',
             'workbench.action.chat.continue',
             'workbench.panel.chat.view.copilot.newChat',
-            // Fallback commands
+            'github.copilot.chat.sendMessage',
+            // More general chat commands
+            'workbench.action.chat.sendMessage',
             'copilot.chat.sendMessage',
-            'workbench.action.chat.sendMessage'
+            'chat.continue'
         ];
 
         // First, ensure GitHub Copilot Chat is focused
         try {
-            await vscode.commands.executeCommand('workbench.panel.chat.view.copilot.focus');
-            await this.delay(300); // Wait for focus
+            const focusCommands = [
+                'workbench.panel.chat.view.copilot.focus',
+                'github.copilot.chat.focus',
+                'workbench.action.chat.open'
+            ];
+            
+            for (const focusCmd of focusCommands) {
+                if (allCommands.includes(focusCmd)) {
+                    await vscode.commands.executeCommand(focusCmd);
+                    console.log(`✅ Focused using: ${focusCmd}`);
+                    await this.delay(300);
+                    break;
+                }
+            }
         } catch (error) {
             console.log('Could not focus Copilot Chat:', error);
         }
 
+        // Try each continue command
         for (const command of commands) {
             try {
-                const allCommands = await vscode.commands.getCommands(true);
                 if (allCommands.includes(command)) {
                     if (command.includes('sendMessage')) {
                         await vscode.commands.executeCommand(command, 'continue');
+                        console.log(`✅ Successfully executed: ${command} with "continue"`);
                     } else {
                         await vscode.commands.executeCommand(command);
+                        console.log(`✅ Successfully executed: ${command}`);
                     }
-                    console.log(`Successfully executed command: ${command}`);
                     return true;
                 }
             } catch (error) {
-                console.log(`Command ${command} failed:`, error);
+                console.log(`❌ Command ${command} failed:`, error);
                 continue;
             }
         }
         
         // If no commands worked, try the text input method
+        console.log('🔄 No direct commands worked, trying text input method...');
         return await this.tryTextInputMethod();
     }
 
     private async tryTextInputMethod(): Promise<boolean> {
         try {
-            // Focus GitHub Copilot Chat sidebar
+            console.log('🎯 Attempting text input method for GitHub Copilot Chat...');
+
+            // Focus GitHub Copilot Chat sidebar with multiple attempts
             const focusCommands = [
                 'workbench.panel.chat.view.copilot.focus',
                 'workbench.view.extension.github-copilot-chat',
                 'github.copilot.chat.focus',
-                'workbench.action.chat.open'
+                'workbench.action.chat.open',
+                'workbench.panel.chatSidebar.focus'
             ];
 
+            const allCommands = await vscode.commands.getCommands(true);
             let focused = false;
+            
             for (const command of focusCommands) {
                 try {
-                    const allCommands = await vscode.commands.getCommands(true);
                     if (allCommands.includes(command)) {
                         await vscode.commands.executeCommand(command);
+                        console.log(`✅ Focused using: ${command}`);
                         focused = true;
-                        console.log(`Successfully focused using: ${command}`);
                         break;
                     }
                 } catch (error) {
@@ -279,63 +325,60 @@ export class ChatAutomationManager {
             }
 
             if (!focused) {
-                console.log('Could not focus GitHub Copilot Chat');
+                console.log('❌ Could not focus GitHub Copilot Chat');
                 return false;
             }
 
-            // Wait for chat to load
-            await this.delay(500);
+            // Wait for chat to fully load and focus
+            await this.delay(1000);
 
-            // Try to find and focus the input area
-            const inputCommands = [
-                'workbench.action.focusChatInput',
-                'workbench.action.chat.focusInput',
-                'editor.action.focusInput'
-            ];
-
-            for (const command of inputCommands) {
-                try {
-                    await vscode.commands.executeCommand(command);
+            // Try multiple ways to focus the input and send continue
+            const inputMethods = [
+                async () => {
+                    // Method 1: Direct input commands
+                    await vscode.commands.executeCommand('workbench.action.focusChatInput');
+                    await this.delay(200);
+                    await vscode.commands.executeCommand('type', { text: 'continue' });
+                    await this.delay(200);
+                    await vscode.commands.executeCommand('workbench.action.chat.submit');
+                },
+                async () => {
+                    // Method 2: Alternative input focus
+                    await vscode.commands.executeCommand('workbench.action.chat.focusInput');
+                    await this.delay(200);
+                    await vscode.commands.executeCommand('type', { text: 'continue' });
+                    await this.delay(200);
+                    await vscode.commands.executeCommand('workbench.action.acceptSelectedSuggestion');
+                },
+                async () => {
+                    // Method 3: Simple type and enter
+                    await vscode.commands.executeCommand('type', { text: 'continue\n' });
+                },
+                async () => {
+                    // Method 4: Type continue and multiple enter attempts
+                    await vscode.commands.executeCommand('type', { text: 'continue' });
                     await this.delay(100);
-                    break;
-                } catch (error) {
-                    continue;
+                    await vscode.commands.executeCommand('type', { text: '\n' });
                 }
-            }
-
-            // Type "continue" message
-            await vscode.commands.executeCommand('type', { text: 'continue' });
-            await this.delay(100);
-
-            // Submit the message - try multiple methods
-            const submitCommands = [
-                'workbench.action.chat.submit',
-                'workbench.action.acceptSelectedSuggestion',
-                'editor.action.acceptSelectedSuggestion'
             ];
 
-            let submitted = false;
-            for (const command of submitCommands) {
+            // Try each input method
+            for (let i = 0; i < inputMethods.length; i++) {
                 try {
-                    await vscode.commands.executeCommand(command);
-                    submitted = true;
-                    console.log(`Successfully submitted using: ${command}`);
-                    break;
+                    console.log(`🔄 Trying input method ${i + 1}...`);
+                    await inputMethods[i]();
+                    console.log(`✅ Text input method ${i + 1} completed`);
+                    return true;
                 } catch (error) {
+                    console.log(`❌ Input method ${i + 1} failed:`, error);
                     continue;
                 }
             }
 
-            // Fallback: simulate Enter key
-            if (!submitted) {
-                await vscode.commands.executeCommand('type', { text: '\n' });
-                console.log('Used Enter key fallback');
-            }
-
-            return true;
+            return false;
 
         } catch (error) {
-            console.log('Text input method failed:', error);
+            console.log('❌ Text input method failed completely:', error);
             return false;
         }
     }
@@ -733,33 +776,95 @@ ${sessions.map(s => `• Session ${s.id}: ${s.continuationCount} continuations`)
     }
 
     public async testContinuation(): Promise<void> {
-        console.log('🔧 Manual test of GitHub Copilot Chat continuation');
+        console.log('🧪 =================================');
+        console.log('🧪 MANUAL TEST: GitHub Copilot Chat Auto-Continue');
+        console.log('🧪 =================================');
+        
+        // Show a prominent test message
+        await vscode.window.showInformationMessage('🧪 Testing GitHub Copilot Chat Auto-Continue...', 'OK');
+        
+        // Check if extension is properly configured
+        const config = vscode.workspace.getConfiguration('autoContinue.chat');
+        const enabled = config.get('enabled', true);
+        console.log(`📋 Extension enabled: ${enabled}`);
+        console.log(`📋 Continue delay: ${config.get('continueDelay', 2000)}ms`);
+        console.log(`📋 Smart detection: ${config.get('smartDetection', true)}`);
+        
+        if (!enabled) {
+            const response = await vscode.window.showWarningMessage(
+                '⚠️ Chat Auto-Continue is disabled in settings. Enable it now?', 
+                'Yes, Enable', 'No'
+            );
+            if (response === 'Yes, Enable') {
+                await config.update('enabled', true, vscode.ConfigurationTarget.Global);
+                console.log('✅ Enabled Chat Auto-Continue');
+            } else {
+                console.log('❌ Test cancelled - extension disabled');
+                return;
+            }
+        }
         
         // Check if GitHub Copilot is available
         const allCommands = await vscode.commands.getCommands(true);
         const copilotCommands = allCommands.filter(cmd => 
-            cmd.toLowerCase().includes('copilot') && cmd.toLowerCase().includes('chat')
+            cmd.toLowerCase().includes('copilot') && 
+            (cmd.toLowerCase().includes('chat') || cmd.toLowerCase().includes('continue'))
         );
         
-        console.log(`Found ${copilotCommands.length} Copilot Chat commands:`, copilotCommands);
+        console.log(`🔍 Found ${copilotCommands.length} GitHub Copilot commands:`);
+        copilotCommands.forEach(cmd => console.log(`   • ${cmd}`));
         
-        // Test continuation detection
-        const needsContinuation = await this.checkIfCopilotChatNeedsContinuation();
-        console.log('Continuation needed:', needsContinuation);
-        
-        // Force a continuation attempt
-        console.log('Attempting continuation...');
-        
-        const success = await this.tryCopilotChatCommands();
-        if (success) {
-            console.log('✅ Direct command method succeeded');
-        } else {
-            console.log('❌ Direct command method failed, trying fallback...');
-            await this.tryTextInputMethod();
-            console.log('✅ Text input method completed');
+        if (copilotCommands.length === 0) {
+            await vscode.window.showErrorMessage(
+                '❌ No GitHub Copilot commands found. Is GitHub Copilot installed and active?'
+            );
+            console.log('❌ GitHub Copilot not detected');
+            return;
         }
         
-        console.log('🏁 Test continuation completed');
+        // Test continuation detection
+        console.log('🎯 Testing continuation detection...');
+        const needsContinuation = await this.checkIfCopilotChatNeedsContinuation();
+        console.log(`📊 Continuation needed: ${needsContinuation}`);
+        
+        // Force a continuation attempt with visual feedback
+        console.log('🚀 Testing continuation methods...');
+        
+        await vscode.window.showInformationMessage('🚀 Now attempting to continue GitHub Copilot Chat...', 'OK');
+        
+        // Method 1: Direct commands
+        console.log('🔄 Testing direct GitHub Copilot commands...');
+        const directSuccess = await this.tryCopilotChatCommands();
+        
+        if (directSuccess) {
+            console.log('✅ Direct command method: SUCCESS');
+            await vscode.window.showInformationMessage('✅ Direct command method worked!');
+        } else {
+            console.log('❌ Direct command method: FAILED');
+            
+            // Method 2: Text input fallback
+            console.log('🔄 Testing text input method...');
+            const textSuccess = await this.tryTextInputMethod();
+            
+            if (textSuccess) {
+                console.log('✅ Text input method: SUCCESS');
+                await vscode.window.showInformationMessage('✅ Text input method worked!');
+            } else {
+                console.log('❌ Text input method: FAILED');
+                await vscode.window.showErrorMessage('❌ All continuation methods failed. Check console for details.');
+            }
+        }
+        
+        // Final status
+        console.log('🏁 =================================');
+        console.log('🏁 TEST COMPLETED');
+        console.log('🏁 =================================');
+        
+        // Start monitoring if not already started
+        if (!this.isMonitoring && config.get('enabled', true)) {
+            console.log('🎬 Starting automatic monitoring...');
+            this.start();
+        }
     }
 
     public dispose() {

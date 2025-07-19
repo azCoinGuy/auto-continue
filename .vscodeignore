@@ -12,3 +12,17 @@ vsc-extension-quickstart.md
 **/*.map
 **/*.ts
 **/.vscode-test.*
+
+# Development and CI files (optional exclusions)
+.github/workflows/**
+.husky/**
+scripts/**
+.pre-commit-config.yaml
+eslint.config.js
+
+# Security documentation (keep only essential ones)
+SECURITY-*.md
+COMPREHENSIVE-*.md
+CI-FAILURES-*.md
+FINAL-*.md
+GITHUB-*.md
