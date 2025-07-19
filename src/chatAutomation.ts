@@ -23,13 +23,33 @@ export class ChatAutomationManager {
     private statusBarItem: vscode.StatusBarItem;
     private isMonitoring: boolean = false;
     private lastActionTime: number = 0;
-    private readonly MIN_ACTION_INTERVAL = 500; // Minimum 500ms between actions
+    private readonly MIN_ACTION_INTERVAL = 2000; // Increased to 2 seconds for better UX
+    private windowFocusDisposable: vscode.Disposable | undefined;
+    private lastWindowFocusTime: number = 0;
 
     constructor(private context: vscode.ExtensionContext) {
         this.loadConfig();
         this.statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
         this.statusBarItem.command = 'auto-continue.toggleChatAutomation';
         this.updateStatusBar();
+        this.setupWindowFocusDetection();
+    }
+
+    private setupWindowFocusDetection() {
+        // Monitor when the window regains focus (user returns to VS Code)
+        this.windowFocusDisposable = vscode.window.onDidChangeWindowState((state) => {
+            if (state.focused && this.isMonitoring) {
+                const now = Date.now();
+                // If user returns to window and some time has passed, trigger continuation
+                if (now - this.lastWindowFocusTime > 3000) { // 3 second minimum
+                    this.lastWindowFocusTime = now;
+                    setTimeout(() => {
+                        this.detectAndContinueConversation();
+                    }, 1000); // Wait 1 second after focus to continue
+                }
+            }
+        });
+        this.context.subscriptions.push(this.windowFocusDisposable);
     }
 
     private loadConfig() {
@@ -91,6 +111,8 @@ export class ChatAutomationManager {
     }
 
     private async checkForContinueButtons() {
+        if (!this.isMonitoring) return;
+        
         try {
             // Rate limiting: ensure minimum interval between actions
             const now = Date.now();
@@ -99,22 +121,106 @@ export class ChatAutomationManager {
             }
             this.lastActionTime = now;
 
-            // Method 1: Check for GitHub Copilot Chat continuation
-            await this.checkCopilotChatContinuation();
+            // Primary Method: Check for truncated responses and auto-continue
+            await this.detectAndContinueConversation();
 
-            // Method 2: Check for continue buttons (existing method)
-            const chatInterface = await ChatInterfaceDetector.detectActiveChatInterface();
-            if (!chatInterface) return;
+        } catch (error) {
+            console.error('Error in chat automation:', error);
+        }
+    }
 
-            const continueButtons = await ChatInterfaceDetector.findContinueButtons();
-            if (continueButtons.length > 0) {
-                await this.performContinueAction(chatInterface);
+    private async detectAndContinueConversation(): Promise<void> {
+        try {
+            // Method 1: Try the most direct Copilot Chat continuation
+            const success = await this.tryCopilotChatCommands();
+            if (success) {
+                this.logContinuation('Copilot Command', 'Direct command success');
+                return;
             }
 
-            // Try to detect active chat sessions and continue buttons
-            await this.detectAndHandleChatContinuations();
+            // Method 2: Try focusing chat and sending continue
+            await this.focusAndSendContinue();
+            this.logContinuation('Focus & Send', 'Chat focus and continue sent');
+
         } catch (error) {
-            console.error('Error checking for continue buttons:', error);
+            console.log('Continue conversation failed:', error);
+        }
+    }
+
+    private async tryCopilotChatCommands(): Promise<boolean> {
+        const commands = [
+            // Most likely Copilot Chat commands
+            'github.copilot.chat.continue',
+            'github.copilot-chat.continue',
+            'workbench.action.chat.continue',
+            'copilot.chat.sendMessage'
+        ];
+
+        for (const command of commands) {
+            try {
+                const allCommands = await vscode.commands.getCommands(true);
+                if (allCommands.includes(command)) {
+                    if (command === 'copilot.chat.sendMessage') {
+                        await vscode.commands.executeCommand(command, 'continue');
+                    } else {
+                        await vscode.commands.executeCommand(command);
+                    }
+                    return true;
+                }
+            } catch (error) {
+                // Try next command
+                continue;
+            }
+        }
+        return false;
+    }
+
+    private async focusAndSendContinue(): Promise<void> {
+        try {
+            // Try to focus GitHub Copilot Chat
+            const focusCommands = [
+                'workbench.panel.chatSidebar.focus',
+                'github.copilot-chat.focus',
+                'workbench.view.chatSidebar.focus',
+                'workbench.action.chat.open'
+            ];
+
+            let focused = false;
+            for (const command of focusCommands) {
+                try {
+                    const allCommands = await vscode.commands.getCommands(true);
+                    if (allCommands.includes(command)) {
+                        await vscode.commands.executeCommand(command);
+                        focused = true;
+                        break;
+                    }
+                } catch (error) {
+                    continue;
+                }
+            }
+
+            if (focused) {
+                // Wait for focus
+                await this.delay(200);
+                
+                // Type "continue" and press enter
+                await vscode.commands.executeCommand('type', { text: 'continue' });
+                await this.delay(100);
+                
+                // Try different ways to submit
+                try {
+                    await vscode.commands.executeCommand('workbench.action.acceptSelectedSuggestion');
+                } catch {
+                    try {
+                        await vscode.commands.executeCommand('editor.action.insertLineAfter');
+                    } catch {
+                        // Fallback: simulate enter key
+                        await vscode.commands.executeCommand('type', { text: '\n' });
+                    }
+                }
+            }
+        } catch (error) {
+            console.log('Focus and send continue failed:', error);
         }
     }
 
